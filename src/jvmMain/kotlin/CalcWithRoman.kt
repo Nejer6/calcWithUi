@@ -1,15 +1,17 @@
+import extensions.RomanNumberFormatException
 import extensions.romanToInt
 import extensions.toRomanNumber
 
+class FormatException: Exception("the format of the mathematical operation does not satisfy the task - two operands and one operator (+, -, /, *)")
+class DifferentNumberSystemException: Exception("different number systems are used simultaneously")
+class OperandIsNotNumberException: Exception("one ore more operands is not a number")
+
 fun calculate(str: String): String {
-    val splitStr = str.split(' ')
+    val splitStr = str.split(' ').filter { it != "" }
     val operations = listOf("+", "-", "/", "*")
-    val formatException = Exception("the format of the mathematical operation does not satisfy the task - two operands and one operator (+, -, /, *)")
-    val differentNumberSystemException = Exception("different number systems are used simultaneously")
-    val operandIsNotNumber = Exception("one ore more operands is not a number")
 
     if (splitStr.size != 3 || !operations.contains(splitStr[1])) {
-        throw formatException
+        throw FormatException()
     }
 
     val operator = splitStr[1]
@@ -19,35 +21,37 @@ fun calculate(str: String): String {
         try {
             val num2 = splitStr[2].toInt()
             return execute(num1, num2, operator).toString()
-        } catch (e: Exception) {
+        } catch (e: NumberFormatException) {
             try {
                 splitStr[2].romanToInt()
-                throw differentNumberSystemException
-            } catch (e: Exception) {
-                throw operandIsNotNumber
+                throw DifferentNumberSystemException()
+            } catch (e: RomanNumberFormatException) {
+                throw OperandIsNotNumberException()
             }
         }
-    } catch (e : Exception) {
+    } catch (e : NumberFormatException) {
         try {
             val num1 = splitStr[0].romanToInt()
             try {
                 val num2 = splitStr[2].romanToInt()
-                return execute(num1, num2, operator).toRomanNumber()
-            } catch (e: Exception) {
+                val result = execute(num1, num2, operator)
+                return result.toRomanNumber()
+            } catch (e: RomanNumberFormatException) {
                 try {
                     splitStr[2].toInt()
-                    throw differentNumberSystemException
-                } catch (e: Exception) {
-                    throw operandIsNotNumber
+                    throw DifferentNumberSystemException()
+                } catch (e: NumberFormatException) {
+                    println(e.message)
+                    throw OperandIsNotNumberException()
                 }
             }
-        } catch (e: Exception) {
-            throw operandIsNotNumber
+        } catch (e: RomanNumberFormatException) {
+            throw OperandIsNotNumberException()
         }
     }
 }
 
-fun execute(num1: Int, num2: Int, operation: String): Int {
+private fun execute(num1: Int, num2: Int, operation: String): Int {
     return when (operation) {
         "+" -> num1 + num2
         "-" -> num1 - num2

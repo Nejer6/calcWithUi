@@ -1,15 +1,16 @@
 package extensions
 
-
 val romanCharset = mapOf('I' to 1, 'V' to 5, 'X' to 10, 'L' to 50, 'C' to 100, 'D' to 500, 'M' to 1000)
 val numbersByRuleOfSubtraction = mapOf("IV" to 4, "IX" to 9, "XL" to 40, "XC" to 90, "CD" to 400, "CM" to 900)
+
+class RomanNumberFormatException(message: String): Exception(message)
 
 fun String.romanToInt(): Int {
     val str = this.uppercase()
 
     str.forEach {
         if (!romanCharset.contains(it)) {
-            throw Exception("The string has characters not related to the Roman notation")
+            throw RomanNumberFormatException("The string has characters not related to the Roman notation")
         }
     }
 
@@ -19,13 +20,13 @@ fun String.romanToInt(): Int {
     while (i < str.length) {
         if (i + 1 < str.length) {
             val numberByRuleOfSubtraction = numbersByRuleOfSubtraction[str.slice(i .. i + 1)]
-            numberByRuleOfSubtraction?.run {
-                nums.add(this)
-                i += 1
-            } ?: run {
-                nums.add(romanCharset[str[i]]!!)
+            if (numberByRuleOfSubtraction != null) {
+                nums.add(numberByRuleOfSubtraction)
+                i += 2
+                continue
             }
         }
+        nums.add(romanCharset[str[i]]!!)
         i++
     }
 
@@ -33,7 +34,7 @@ fun String.romanToInt(): Int {
     var number = nums.first()
     for (i in 1 until nums.size) {
         if (nums[i] > minNum) {
-            throw Exception("incorrect entry of the Roman number")
+            throw RomanNumberFormatException("incorrect entry of the Roman number")
         }
         minNum = nums[i]
         number += nums[i]
@@ -74,8 +75,4 @@ fun Int.toRomanNumber(): String {
     }
 
     return result
-}
-
-fun main() {
-    println(143.toRomanNumber())
 }
